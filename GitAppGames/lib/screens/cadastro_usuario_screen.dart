@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CadastroUsuarioScreen extends StatefulWidget {
   const CadastroUsuarioScreen({super.key});
@@ -12,6 +13,7 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
 
   final _loginController = TextEditingController();
   final _emailController = TextEditingController();
+  final _telefoneController = TextEditingController();
   final _senhaController = TextEditingController();
   final _confirmarSenhaController = TextEditingController();
 
@@ -19,6 +21,7 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
   void dispose() {
     _loginController.dispose();
     _emailController.dispose();
+    _telefoneController.dispose();
     _senhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
@@ -60,7 +63,6 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Mesmo fundo da tela de login
           Image.asset(
             'assets/fundo_login.jpg',
             fit: BoxFit.cover,
@@ -70,7 +72,6 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
             color: Colors.black.withOpacity(0.25),
           ),
 
-          // Card Central Preto com Borda Vermelha
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -90,10 +91,9 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Logo da serpente um pouco mais compacta para caber os 4 campos
                       SizedBox(
-                        width: 90,
-                        height: 90,
+                        width: 85,
+                        height: 85,
                         child: Transform.scale(
                           scale: 1.8,
                           child: Image.asset(
@@ -102,7 +102,7 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
                       const Text(
                         'Criar Conta',
@@ -112,19 +112,26 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
-                      // ID de Login
+                      // ID de Login (mínimo 3 caracteres)
                       TextFormField(
                         controller: _loginController,
                         style: const TextStyle(color: Colors.black87, fontSize: 14),
                         decoration: _estiloInput('ID de Login...'),
-                        validator: (val) =>
-                            val == null || val.trim().isEmpty ? 'Informe um ID de Login' : null,
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Informe um ID de Login';
+                          }
+                          if (val.trim().length < 3) {
+                            return 'Mínimo de 3 caracteres';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 14),
 
-                      // E-mail
+                      // E-mail com validação por Regex
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -134,15 +141,40 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                           if (val == null || val.trim().isEmpty) {
                             return 'Informe seu e-mail';
                           }
-                          if (!val.contains('@')) {
-                            return 'E-mail inválido';
+                          final emailRegex = RegExp(
+                            r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$',
+                          );
+                          if (!emailRegex.hasMatch(val.trim())) {
+                            return 'Digite um e-mail válido';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 14),
 
-                      // Senha
+                      // Telefone (apenas números, 10 ou 11 dígitos com DDD)
+                      TextFormField(
+                        controller: _telefoneController,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(11),
+                        ],
+                        style: const TextStyle(color: Colors.black87, fontSize: 14),
+                        decoration: _estiloInput('Telefone (com DDD)...'),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Informe seu telefone';
+                          }
+                          if (val.length < 10 || val.length > 11) {
+                            return 'O telefone deve ter 10 ou 11 dígitos';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Senha (mínimo 6 caracteres)
                       TextFormField(
                         controller: _senhaController,
                         obscureText: true,
@@ -152,8 +184,8 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                           if (val == null || val.isEmpty) {
                             return 'Informe uma senha';
                           }
-                          if (val.length < 4) {
-                            return 'Mínimo de 4 caracteres';
+                          if (val.length < 6) {
+                            return 'A senha deve ter no mínimo 6 caracteres';
                           }
                           return null;
                         },
@@ -176,7 +208,7 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
 
                       // Botão Cadastrar
                       SizedBox(
@@ -199,7 +231,7 @@ class _CadastroUsuarioScreenState extends State<CadastroUsuarioScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
 
                       // Link para voltar ao Login
                       GestureDetector(
